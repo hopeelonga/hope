@@ -1,0 +1,42 @@
+import serial
+import csv
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Set up the serial connection (replace with the correct port)
+ser = serial.Serial('COM3', 115200)  # Replace 'COM3' with the Arduino's serial port
+
+# Create a CSV file to store the data
+csv_filename = 'accelerometer_data.csv'
+with open(csv_filename, 'w', newline='') as csvfile:
+    csv_writer = csv.writer(csvfile)
+    csv_writer.writerow(['Timestamp', 'X', 'Y', 'Z'])
+
+    # Read data and write to the CSV file
+    while True:
+        data = ser.readline().decode('utf-8').strip()
+        data_list = data.split(',')
+        if len(data_list) == 4:  # Ensure you are receiving the correct number of values
+            timestamp, x, y, z = data_list
+            csv_writer.writerow([timestamp, x, y, z])
+
+# Load data from the CSV file into a Pandas DataFrame
+df = pd.read_csv(csv_filename)
+
+# Calculate impact (you can implement your own impact calculation logic)
+df['Impact'] = df['X'] + df['Y'] + df['Z']
+
+# Plot the data
+plt.figure(figsize=(10, 6))
+plt.plot(df['Timestamp'], df['Impact'], label='Impact')
+plt.xlabel('Timestamp')
+plt.ylabel('Impact')
+plt.title('Impact Over Time')
+plt.legend()
+plt.grid(True)
+
+# Show the plot or save it to a file
+plt.show()
+
+# Close the serial port when done
+ser.close()
